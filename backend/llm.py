@@ -59,6 +59,10 @@ def should_failover(exc) -> bool:
     return status in (401, 403, 408, 429) or status >= 500
 
 
+async def _backoff(seconds: float) -> None:
+    await asyncio.sleep(seconds)
+
+
 async def _call_key(key: str, messages: list, bypass_cache: bool):
     extra = {"cache": {"no-cache": True}} if bypass_cache else {}
     if config.REASONING_EFFORT:
@@ -109,7 +113,7 @@ async def complete(messages: list, simulation: dict) -> dict:
                 simulated = isinstance(exc, SimulatedProviderError)
                 transient = (not simulated) and _status(exc) in (500, 502, 503, 504)
                 if transient and attempt < attempts - 1:
-                    await asyncio.sleep(2 * (attempt + 1))
+                    await _backoff(2 * (attempt + 1))
                     continue
                 detail = str(exc)
                 for secret in config.API_KEYS:
