@@ -1,0 +1,9 @@
+.venv
+__pycache__
+.pytest_cache
+tests
+data
+.env
+try_api.py
+try_failover.py
+model_check.py
